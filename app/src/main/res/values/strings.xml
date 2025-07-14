@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">DecideIT</string>
+    <string name="describe">Student Voting Application</string>
+    <string name="username">Enter username</string>
+    <string name="password">Enter password</string>
+    <string name="login">LOGIN</string>
+    <string name="message1">If you do not have an account, please register here</string>
+    <string name="register">REGISTER</string>
+
+    <!--    register activity-->
+    <string name="index_number">Enter index number</string>
+    <string name="name">Enter name</string>
+
+    <!--    studentViewActivity-->
+    <string name="profile">PROFILE</string>
+    <string name="calendar">CALENDAR</string>
+
+    <!--   fragment_profile-->
+    <string name="hello">Hello user: </string>
+
+    <!--    activity_decide-->
+    <string name="session">Session 1</string>
+    <string name="description">Description: </string>
+    <string name="date">Date: </string>
+    <string name="timeLeft">Time left to vote: </string>
+    <string name="y">YES</string>
+    <string name="n">NO</string>
+    <string name="a">ABSTRAIN</string>
+
+    <!--    activity_admin-->
+    <string name="students">STUDENTS</string>
+    <string name="sessions">SESSIONS</string>
+    <string name="studentsL">STUDENTS LIST</string>
+    <string name="sessionsL">SESSIONS LIST</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
