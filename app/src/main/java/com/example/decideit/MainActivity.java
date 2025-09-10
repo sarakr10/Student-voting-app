@@ -50,14 +50,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.i("LOGIN", "Pritisnuto login dugme");
             String username = ETusername.getText().toString().trim();
             String password = ETpassword.getText().toString().trim();
-            if(username.equals("student") && password.equals("student")){
-                Intent iSA = new Intent(MainActivity.this, StudentViewActivity.class);
-                iSA.putExtra("username", username);
-                startActivity(iSA);
-            }
-            else if(username.equals("admin") && password.equals("admin")){
-                Intent iAA = new Intent(MainActivity.this, AdminActivity.class);
-                startActivity(iAA);
+            DBHelper dbHelper = new DBHelper(MainActivity.this);
+            UserModel user = dbHelper.checkUsernamePassword(username, password);
+            if(user!=null){
+                if(user.isRole()){              //ako je admin
+                    Intent iAA = new Intent(MainActivity.this, AdminActivity.class);
+                    startActivity(iAA);
+                }else {
+                    Intent iSA = new Intent(MainActivity.this, StudentViewActivity.class);
+                    iSA.putExtra("name", user.getName());
+                    iSA.putExtra("surname", user.getSurname());
+                    startActivity(iSA);
+                }
             }
             else{
                 Toast.makeText(MainActivity.this, "Wrong username or password", Toast.LENGTH_SHORT).show();

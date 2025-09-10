@@ -17,12 +17,13 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="0dp"
-        android:text="@string/session"
+        android:text="Session name"
         android:textSize="30sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-condensed-light"
         android:layout_gravity="center"
         android:layout_weight="2"
+        android:id="@+id/sessionName"
         />
 
     <TextView
@@ -39,13 +40,35 @@
         android:textSize="20sp"
         android:text="@string/date"
         />
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1.5"
-        android:textSize="20sp"
-        android:text="@string/timeLeft"
-        />
+        android:orientation="horizontal"
+        android:layout_weight="1.5">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20sp"
+            android:text="@string/timeLeft"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="20sp"
+            android:text="End of voting time"
+            android:id="@+id/endOfVotingTime"
+            />
+
+
+    </LinearLayout>
+
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

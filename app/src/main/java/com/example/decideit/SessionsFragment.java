@@ -1,12 +1,27 @@
 package com.example.decideit;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.CalendarView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -15,28 +30,31 @@ import android.view.ViewGroup;
  */
 public class SessionsFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
+    private static final String ARG_PARAM2 = "param2";
     private String mParam1;
     private String mParam2;
+    DBHelper db;
+
+    ListView list;
+    TextView emptyText;
+    SessionAdapter adapter;
+    Button submit;
+    CalendarView calendar;
+
+    long selectedDate;
+    long todayDate;
+
+    int sessionCounter=0;
+    String sessionName;
+    String sessionStatus;
+
 
     public SessionsFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment SessionsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static SessionsFragment newInstance(String param1, String param2) {
         SessionsFragment fragment = new SessionsFragment();
         Bundle args = new Bundle();
@@ -58,7 +76,76 @@ public class SessionsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_sessions, container, false);
+
+       View v = inflater.inflate(R.layout.fragment_sessions, container, false);
+
+       list = v.findViewById(R.id.sessionList);
+       emptyText = v.findViewById(R.id.emptyListText);
+       list.setEmptyView(emptyText);
+
+       submit = v.findViewById(R.id.submitButton);
+       calendar = v.findViewById(R.id.sessionCalendar);
+
+       submit.setOnClickListener(this::onClickSubmit);
+
+       db = new DBHelper(requireContext());
+       //KADA SE PROSLEDI 0 GETSESSIONS DOBIJA SE LISTA SVIH SESIJA U BAZI
+       ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
+
+       adapter = new SessionAdapter(requireContext(), sessionsFromDB);
+
+       list.setAdapter(adapter);
+
+       //datum selektovan kada se fragment prvi put ucita tj danasnji datum
+       todayDate = calendar.getDate();
+       selectedDate = calendar.getDate();
+
+        calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                Activity a = getActivity();
+                if(a!=null){
+                    Calendar cal = Calendar.getInstance();
+                    cal.set(year, month, dayOfMonth, 0, 0, 0);
+                    selectedDate = cal.getTimeInMillis();
+                }
+            }
+        });
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent i = new Intent(view.getContext(), ResultsActivity.class);
+                startActivity(i);
+            }
+        });
+        return v;
     }
+
+    public void onClickSubmit(View v){
+        if(v.getId()==R.id.submitButton){
+
+            sessionCounter++;
+            sessionName = "Session " + sessionCounter;
+
+            if(selectedDate < todayDate){
+                sessionStatus = "PAST";
+            }else{
+                sessionStatus = "UPCOMING";
+            }
+
+            SessionModel session = new SessionModel(sessionName,selectedDate,sessionStatus);
+
+            db.insertSession(session);
+
+            ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
+
+            adapter.clear();
+            adapter.setSessions(sessionsFromDB);
+            adapter.notifyDataSetChanged();
+
+        }
+    }
+
+
 }

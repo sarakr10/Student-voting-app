@@ -7,11 +7,16 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import android.os.Parcelable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CalendarView;
+import android.widget.Toast;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
@@ -72,14 +77,29 @@ public class CalendarFragment extends Fragment {
         Calendar minDate = Calendar.getInstance();
         minDate.set(2024, Calendar.DECEMBER, 15);
         calendarV.setMinDate(minDate.getTimeInMillis());
+        
 
         calendarV.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView view, int year, int month, int dayOfMonth) {
+                
                 Activity a = getActivity();
                 if(a!=null){
-                    Intent i = new Intent(a, DecideActivity.class);
-                    a.startActivity(i);
+                    Calendar cal = Calendar.getInstance();
+                    cal.set(year,month, dayOfMonth, 0, 0, 0);
+                    long selectedDate = cal.getTimeInMillis();
+
+                    DBHelper db = new DBHelper(requireContext());
+                    Log.i("ODABRAN DATUM", ":"+selectedDate);
+                    ArrayList<SessionModel> sessions = db.getSessions(selectedDate);
+                    
+                    if(sessions.isEmpty()){
+                        Toast.makeText(a, "No sessions for selected date", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Intent i = new Intent(a, DecideActivity.class);
+                        i.putExtra("session", (Serializable) sessions.get(0));
+                        a.startActivity(i);
+                    }
                 }
             }
         });

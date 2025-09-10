@@ -11,12 +11,11 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/describe"
-        android:textSize="30sp"
-        android:fontFamily="sans-serif-condensed-light"
-        android:textStyle="bold"
+        android:text="@string/app_name"
+        android:fontFamily="@font/font2"
+        android:textSize="50sp"
         android:gravity="center"
-        android:textColor="@color/black"
+        android:textColor="@color/charcoal"
         />
 
     <ImageView
@@ -132,11 +131,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:backgroundTint="@color/green"
+            android:backgroundTint="@color/charcoal"
             android:fontFamily="sans-serif-condensed-light"
             android:gravity="center"
             android:text="@string/register"
-            android:textColor="@color/black"
+            android:textColor="@color/white"
             android:textStyle="bold" />
 
 

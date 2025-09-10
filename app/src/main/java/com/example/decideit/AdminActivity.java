@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,12 +46,12 @@ public class AdminActivity extends AppCompatActivity implements View.OnClickList
         int green = ContextCompat.getColor(this, R.color.green);
         int charcoal = ContextCompat.getColor(this, R.color.charcoal);
         if(v.getId() == R.id.sessionsB){
-            Log.i("STUDENTS","pritisnuto je STUDENTS dugme");
+            Log.i("SESSIONS","pritisnuto je SESSIONS dugme");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragmentLayoutAdmin, seFragment).addToBackStack(null).commit();
             buttonSessions.setBackgroundColor(green);
             buttonStudents.setBackgroundColor(charcoal);
         } else if (v.getId() == R.id.studentsB) {
-            Log.i("SESSIONS", "pritisnuto je SESSIONS dugme");
+            Log.i("STUDENTS", "pritisnuto je STUDENTS dugme");
             getSupportFragmentManager().beginTransaction().replace(R.id.fragmentLayoutAdmin, stFragment).addToBackStack(null).commit();
             buttonSessions.setBackgroundColor(charcoal);
             buttonStudents.setBackgroundColor(green);

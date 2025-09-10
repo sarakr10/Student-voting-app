@@ -63,9 +63,9 @@ public class ProfileFragment extends Fragment {
 
         Bundle args = getArguments();
         if (args != null) {
-            String username = args.getString("username");
+            String greeting = " " + args.getString("name") + " " + args.getString("surname");
             TextView textView = view.findViewById(R.id.profileText);
-            textView.setText(username);
+            textView.setText(greeting);
         }
 
         return view;

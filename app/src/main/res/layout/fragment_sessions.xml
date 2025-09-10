@@ -5,12 +5,61 @@
     android:layout_height="match_parent"
     tools:context=".SessionsFragment">
 
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/sessionsL"
-        android:textSize="30sp"
+        android:textSize="25sp"
         android:textStyle="bold"
-        android:gravity="center"/>
+        android:gravity="center"
+        />
+
+    <CalendarView
+        android:id="@+id/sessionCalendar"
+        android:layout_width="wrap_content"
+        android:layout_height="303dp"
+        android:layout_gravity="center" />
+    <Button
+        android:id="@+id/submitButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/charcoal"
+        android:text="@string/submitButton"
+        />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+    >
+
+        <ListView
+            android:id="@+id/sessionList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/listEmpty"
+            android:id="@+id/emptyListText"
+            android:textSize="35sp"
+            android:textStyle="bold"
+            android:layout_gravity="center"
+            android:textColor="@color/charcoal"
+            />
+
+    </FrameLayout>
+
+</LinearLayout>
+
 
 </FrameLayout>

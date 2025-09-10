@@ -31,9 +31,11 @@ public class StudentViewActivity extends AppCompatActivity implements View.OnCli
             return insets;
         });
 
-        String username = getIntent().getStringExtra("username");
+        String name = getIntent().getStringExtra("name");
+        String surname = getIntent().getStringExtra("surname");
         Bundle bundle = new Bundle();
-        bundle.putString("username", username);
+        bundle.putString("name", name);
+        bundle.putString("surname", surname);
         pFragment.setArguments(bundle);
 
         profileButton = findViewById(R.id.profileB);

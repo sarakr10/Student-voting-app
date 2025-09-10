@@ -1,12 +1,21 @@
 package com.example.decideit;
 
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Adapter;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -15,28 +24,21 @@ import android.view.ViewGroup;
  */
 public class StudentsFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    ListView list;
+    TextView emptyText;
+
+    StudentAdapter adapter;
 
     public StudentsFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment StudentsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static StudentsFragment newInstance(String param1, String param2) {
         StudentsFragment fragment = new StudentsFragment();
         Bundle args = new Bundle();
@@ -59,6 +61,21 @@ public class StudentsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_students, container, false);
+        View v = inflater.inflate(R.layout.fragment_students, container, false);
+        list = v.findViewById(R.id.studentList);
+        emptyText = v.findViewById(R.id.emptyListText);
+        list.setEmptyView(emptyText);
+
+        DBHelper db = new DBHelper(requireContext());
+        adapter = new StudentAdapter(requireContext(), db);
+        List<StudentModel> students = db.getAllStudents(requireContext());
+        Log.i("LISTA STUDENATA","Broj studenata u listi "+ students.size());
+        for(StudentModel s : students){
+            adapter.addElement(s);
+        }
+
+        list.setAdapter(adapter);
+
+        return v;
     }
 }

@@ -16,7 +16,7 @@
     <string name="calendar">CALENDAR</string>
 
     <!--   fragment_profile-->
-    <string name="hello">Hello user: </string>
+    <string name="hello">Hello user:  </string>
 
     <!--    activity_decide-->
     <string name="session">Session 1</string>
@@ -32,6 +32,11 @@
     <string name="sessions">SESSIONS</string>
     <string name="studentsL">STUDENTS LIST</string>
     <string name="sessionsL">SESSIONS LIST</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="listEmpty">THE LIST IS EMPTY</string>
+    <string name="submitButton">SUBMIT</string>
+
+    <!--    activity_results-->
+    <string name="votedY">Voted YES: X</string>
+    <string name="votedN">Voted NO: X</string>
+    <string name="votedA">Voted ABSTRAIN: X</string>
 </resources>

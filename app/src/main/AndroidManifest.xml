@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DecideIT">
         <activity
+            android:name=".ResultsActivity"
+            android:exported="false" />
+        <activity
             android:name=".StudentViewActivity"
             android:exported="false" />
         <activity
