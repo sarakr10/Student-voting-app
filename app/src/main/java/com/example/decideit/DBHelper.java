@@ -126,6 +126,21 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
+    public void updateVotes(String sessionName, long sessionDate, String type){
+        SQLiteDatabase db = this.getWritableDatabase();
+        String column = null;
+        if("YES".equals(type)){column = COLUMN_YES;}
+        else if("NO".equals(type)){column = COLUMN_NO;}
+        else if("ABSTAIN".equals(type)){column = COLUMN_ABSTAIN;}
+
+        String sql = "UPDATE " + TABLE_VOTES +
+                " SET " + column + " = " + column + " + 1" +
+                " WHERE " + COLUMN_SESSION_NAME + "=? AND " + COLUMN_DATE + "=?";
+        db.execSQL(sql, new Object[]{sessionName, getDateInString(sessionDate)});
+        db.close();
+        Log.i("UPDATED VOTE", "VOTE HAS BEEN UPDATED       " +column);
+    }
+
     public String hashPassword(String password){
         try{
             MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -207,6 +222,24 @@ public class DBHelper extends SQLiteOpenHelper {
         Log.i("LISTA SESIJA","BROJ SESIJA U DBHELPER "+ sessions.size());
         cursor.close();
         return sessions;
+    }
+
+    public VotesModel getVotes(String sessionName, String sessionDate){
+        SQLiteDatabase db = this.getReadableDatabase();
+        VotesModel votes = null;
+
+        Cursor cursor = db.query(TABLE_VOTES, new String[]{COLUMN_YES, COLUMN_NO, COLUMN_ABSTAIN},
+                        COLUMN_SESSION_NAME+"=? AND "+COLUMN_DATE+"=?",
+                                new String[] {sessionName,sessionDate}, null, null, null);
+        if(cursor!=null && cursor.moveToFirst()){
+        int yes = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_YES));
+        int no = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NO));
+        int abstain = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ABSTAIN));
+        Log.i("BROJ GLASOVA", "yes  "+yes+"  no  "+no+"  abstain  "+abstain);
+        votes = new VotesModel(no, yes, abstain, sessionName, sessionDate);
+        cursor.close();
+        }
+        return votes;
     }
     public String getDateInString(long date){
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");

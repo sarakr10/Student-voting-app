@@ -10,8 +10,7 @@
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
         android:text="@string/votedY"
         android:textColor="@color/dGreen"
         android:textSize="25sp"
@@ -19,11 +18,21 @@
         android:gravity="center_horizontal"
 
       />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:textColor="@color/dGreen"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:id="@+id/yesTextView"
+        android:text="Yes votes"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="@string/votedN"
         android:textColor="@color/red"
         android:textSize="25sp"
@@ -31,16 +40,38 @@
         android:gravity="center_horizontal"
 
         />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:textColor="@color/red"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:id="@+id/noTextView"
+        android:text="No votes"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:text="@string/votedA"
         android:textColor="@color/charcoal"
         android:textSize="25sp"
         android:textStyle="bold"
         android:gravity="center_horizontal"
         />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:textColor="@color/charcoal"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:id="@+id/abstainTextView"
+        android:text="Abstain votes"
+        />
+
 
 </LinearLayout>

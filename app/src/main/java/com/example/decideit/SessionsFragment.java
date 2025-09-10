@@ -112,10 +112,14 @@ public class SessionsFragment extends Fragment {
             }
         });
 
+        //KLIK NA DATUM PRELAZI SE NA RESULTS ACTIVITY
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                SessionModel clickedSession = (SessionModel) parent.getItemAtPosition(position);
                 Intent i = new Intent(view.getContext(), ResultsActivity.class);
+                i.putExtra("sessionName", clickedSession.getName());
+                i.putExtra("sessionDate", db.getDateInString(clickedSession.getDate()));
                 startActivity(i);
             }
         });
@@ -134,6 +138,10 @@ public class SessionsFragment extends Fragment {
                 sessionStatus = "UPCOMING";
             }
 
+            //glasovi za datu sesiju se inicijalizuju na 0
+            VotesModel votes = new VotesModel(0, 0, 0, db.getDateInString(selectedDate), sessionName);
+            db.insertVote(votes);
+            
             SessionModel session = new SessionModel(sessionName,selectedDate,sessionStatus);
 
             db.insertSession(session);

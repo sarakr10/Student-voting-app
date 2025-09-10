@@ -7,6 +7,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -88,10 +89,24 @@ public class DecideActivity extends AppCompatActivity implements View.OnClickLis
     public void onClick(View v) {
         int green = ContextCompat.getColor(this, R.color.green);
         int charcoal = ContextCompat.getColor(this, R.color.charcoal);
+        //resetuje prethodno dugme
         if(selectedButton!=null){
             selectedButton.setBackgroundColor(charcoal);
         }
         selectedButton = (Button) v;
         selectedButton.setBackgroundColor(green);
+
+        DBHelper db = new DBHelper(this);
+
+        if(v.getId()==R.id.yes){
+            db.updateVotes(name, date, "YES");
+            Toast.makeText(this, "Your YES vote has been recorded", Toast.LENGTH_SHORT).show();
+        } else if (v.getId() == R.id.no) {
+            db.updateVotes(name, date, "NO");
+            Toast.makeText(this, "Your NO vote has been recorded", Toast.LENGTH_SHORT).show();
+        } else if (v.getId() == R.id.abstrain) {
+            db.updateVotes(name, date, "ABSTAIN");
+            Toast.makeText(this, "Your ABSTAIN vote has been recorded", Toast.LENGTH_SHORT).show();
+        }
+        }
     }
-}
