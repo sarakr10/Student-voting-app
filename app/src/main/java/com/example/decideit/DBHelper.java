@@ -92,6 +92,14 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
 
     }
+
+    public boolean sessionExists(String name) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_SESSIONS, new String[]{COLUMN_SESSION_NAME}, COLUMN_SESSION_NAME+"=?", new String[]{name}, null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        return exists;
+    }
     public long getEndOfVotingTime(String name, String date){
         SQLiteDatabase db = this.getReadableDatabase();
         long endOfVotingTime=0;

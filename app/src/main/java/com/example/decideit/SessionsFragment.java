@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CalendarView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -23,6 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -55,7 +57,8 @@ public class SessionsFragment extends Fragment {
     String sessionName;
     String sessionStatus;
     private  HttpHelper httpHelper;
-    private static final String SERVER_URL = "http://localhost:8080/api/sessions";
+    private static final String SERVER_URL = "http://10.0.2.2:8080/api/sessions";
+    private static final String POST_URL = "http://10.0.2.2:8080/api/session";
 
 
     public SessionsFragment() {
@@ -96,12 +99,12 @@ public class SessionsFragment extends Fragment {
        submit.setOnClickListener(this::onClickSubmit);
 
        db = new DBHelper(requireContext());
-       //KADA SE PROSLEDI 0 GETSESSIONS DOBIJA SE LISTA SVIH SESIJA U BAZI
-       ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
+       httpHelper = new HttpHelper();
 
-       adapter = new SessionAdapter(requireContext(), sessionsFromDB);
-
+       adapter = new SessionAdapter(requireContext(), new ArrayList<>());
        list.setAdapter(adapter);
+
+       fetchSessionsFromServer();
 
        //datum selektovan kada se fragment prvi put ucita tj danasnji datum
        todayDate = calendar.getDate();
@@ -134,6 +137,7 @@ public class SessionsFragment extends Fragment {
     }
 
     private void fetchSessionsFromServer() {
+        Log.i("FETCH_SESSIONS", "Starting fetchSessionsFromServer()");
         new Thread(() -> {
             try {
                 JSONArray jsonArray = httpHelper.getJSONArrayFromURL(SERVER_URL);
@@ -141,31 +145,41 @@ public class SessionsFragment extends Fragment {
                     ArrayList<SessionModel> sessionsFromServer = new ArrayList<>();
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject obj = jsonArray.getJSONObject(i);
-                        String name = obj.getString("name");
-
-                        long date;
+                        Log.i("FETCH_SESSIONS", "Parsing session object: " + obj.toString());
+                        String name = obj.getString("sessionName");
+                        String dateStr="";
+                        long dateMillis = 0;
                         try {
-                            date = obj.getLong("date"); // ako server vraća long
+                            dateStr = obj.getString("date");
                         } catch (JSONException e) {
-                            // ako vraća string u formatu dd.MM.yyyy
-                            String dateStr = obj.getString("date");
-                            date = new java.text.SimpleDateFormat("dd.MM.yyyy").parse(dateStr).getTime();
+                            try {
+                                dateMillis = obj.getLong("date"); // timestamp u milisekundama
+                            } catch (JSONException ex) {
+                                ex.printStackTrace();
+                            }
                         }
 
                         String description = obj.getString("description");
-                        String id = obj.optString("id", null);
+                        String endOfVotingTimeStr = obj.getString("endOfVotingTime");
+                        long endOfVotingTime = java.time.Instant.parse(endOfVotingTimeStr).toEpochMilli();
+                        String id = obj.optString("_id", null);
 
-                        SessionModel session = new SessionModel(name, date, description);
+                        dateMillis = Instant.parse(dateStr).toEpochMilli();
+                        SessionModel session = new SessionModel(name, dateMillis, description);
                         session.setId(id);
-                        sessionsFromServer.add(session);
-                    }
 
-                    requireActivity().runOnUiThread(() -> {
-                        adapter.clear();
-                        adapter.setSessions(sessionsFromServer);
-                        adapter.notifyDataSetChanged();
-                    });
+                        if (!db.sessionExists(session.getId())) {
+                            db.insertSession(session);
+                        }
+                        Log.i("FETCH_SESSIONS", "Inserted session into DB: " + session.getName());
+                        sessionsFromServer.add(session); //za osvezavanje adaptera
+                    }
                 }
+                requireActivity().runOnUiThread(() -> {
+                    adapter.clear(); // obriše sve iz adaptera
+                    adapter.setSessions(db.getSessions(0));
+                    adapter.notifyDataSetChanged();
+                });
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -174,29 +188,54 @@ public class SessionsFragment extends Fragment {
     public void onClickSubmit(View v){
         if(v.getId()==R.id.submitButton){
 
-            sessionCounter++;
-            sessionName = "Session " + sessionCounter;
+            LayoutInflater inflater = LayoutInflater.from(requireContext());
+            View dialogView = inflater.inflate(R.layout.submit_dialog, null);
 
-            if(selectedDate < todayDate){
-                sessionStatus = "PAST";
-            }else{
-                sessionStatus = "UPCOMING";
-            }
+            EditText nameInput = dialogView.findViewById(R.id.sessionNameInput);
+            EditText descInput = dialogView.findViewById(R.id.sessionDescInput);
 
-            //glasovi za datu sesiju se inicijalizuju na 0
-            VotesModel votes = new VotesModel(0, 0, 0, db.getDateInString(selectedDate), sessionName);
-            db.insertVote(votes);
-            
-            SessionModel session = new SessionModel(sessionName,selectedDate,sessionStatus);
+            new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("New Session")
+                    .setView(dialogView)
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        String sessionName = nameInput.getText().toString().trim();
+                        String sessionDesc = descInput.getText().toString().trim();
 
-            db.insertSession(session);
+                        SessionModel session = new SessionModel(sessionName, selectedDate, sessionDesc);
+                        // Kreiraj JSON za server
+                        JSONObject json = new JSONObject();
+                        try {
+                            json.put("date", selectedDate);
+                            json.put("sessionName", sessionName);
+                            json.put("description", sessionDesc);
+                            json.put("endOfVotingTime", session.getEndOfVotingTime());
 
-            ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        // Pošalji na server u posebnom thread-u
+                        new Thread(() -> {
+                            try {
+                                boolean success = httpHelper.postJSONObjectFromURL(POST_URL, json);
+                                if (success) {
 
-            adapter.clear();
-            adapter.setSessions(sessionsFromDB);
-            adapter.notifyDataSetChanged();
+                                    // Osveži listu na UI thread-u
+                                    requireActivity().runOnUiThread(() -> {
+                                        //fetchSessionsFromServer();
+                                        ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
+                                        adapter.clear();
+                                        adapter.setSessions(sessionsFromDB);
+                                        adapter.notifyDataSetChanged();
+                                    });
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }).start();
 
+                    })
+                    .setNegativeButton("Cancel", null)
+                    .show();
         }
     }
 

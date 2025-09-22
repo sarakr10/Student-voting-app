@@ -42,6 +42,11 @@ public class SessionModel implements Serializable {
         this.name = name;
     }
 
+    public long getEndOfVotingTime(){
+        long endOfVotingTime = this.getDate() + 3* 24 * 60 * 60 * 1000; //3 dana  u ms
+        return endOfVotingTime;
+    }
+
     public String getDateInString(){
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
         String dateString = sdf.format(date);
