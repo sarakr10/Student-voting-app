@@ -9,20 +9,21 @@ import java.util.Locale;
 public class SessionModel implements Serializable {
     private String name;
     private long date;
-    private String status;      //status/description
+    private String description;      //status/description
+    private String id;
 
-    public SessionModel(String name, long date, String status){
+    public SessionModel(String name, long date, String description){
         this.name = name;
         this.date = date;
-        this.status = status;
+        this.description = description;
     }
 
     public String getStatus() {
-        return status;
+        return description;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setStatus(String description) {
+        this.description = description;
     }
 
     public long getDate() {
@@ -47,8 +48,11 @@ public class SessionModel implements Serializable {
         return dateString;
     }
 
+    public String getId() {
+        return id;
+    }
 
-
-
-
+    public void setId(String id) {
+        this.id = id;
+    }
 }

@@ -7,6 +7,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import org.json.JSONException;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +18,9 @@ import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +54,8 @@ public class SessionsFragment extends Fragment {
     int sessionCounter=0;
     String sessionName;
     String sessionStatus;
+    private  HttpHelper httpHelper;
+    private static final String SERVER_URL = "http://localhost:8080/api/sessions";
 
 
     public SessionsFragment() {
@@ -126,6 +133,44 @@ public class SessionsFragment extends Fragment {
         return v;
     }
 
+    private void fetchSessionsFromServer() {
+        new Thread(() -> {
+            try {
+                JSONArray jsonArray = httpHelper.getJSONArrayFromURL(SERVER_URL);
+                if (jsonArray != null) {
+                    ArrayList<SessionModel> sessionsFromServer = new ArrayList<>();
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject obj = jsonArray.getJSONObject(i);
+                        String name = obj.getString("name");
+
+                        long date;
+                        try {
+                            date = obj.getLong("date"); // ako server vraća long
+                        } catch (JSONException e) {
+                            // ako vraća string u formatu dd.MM.yyyy
+                            String dateStr = obj.getString("date");
+                            date = new java.text.SimpleDateFormat("dd.MM.yyyy").parse(dateStr).getTime();
+                        }
+
+                        String description = obj.getString("description");
+                        String id = obj.optString("id", null);
+
+                        SessionModel session = new SessionModel(name, date, description);
+                        session.setId(id);
+                        sessionsFromServer.add(session);
+                    }
+
+                    requireActivity().runOnUiThread(() -> {
+                        adapter.clear();
+                        adapter.setSessions(sessionsFromServer);
+                        adapter.notifyDataSetChanged();
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
     public void onClickSubmit(View v){
         if(v.getId()==R.id.submitButton){
 
