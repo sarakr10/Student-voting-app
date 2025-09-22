@@ -23,6 +23,7 @@ import android.widget.TextView;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -99,12 +100,14 @@ public class SessionsFragment extends Fragment {
        submit.setOnClickListener(this::onClickSubmit);
 
        db = new DBHelper(requireContext());
-       httpHelper = new HttpHelper();
-
+        db.clearAllSessions();
+        httpHelper = new HttpHelper();
        adapter = new SessionAdapter(requireContext(), new ArrayList<>());
-       list.setAdapter(adapter);
+        adapter.clear();
+        list.setAdapter(adapter);
 
-       fetchSessionsFromServer();
+
+        fetchSessionsFromServer();
 
        //datum selektovan kada se fragment prvi put ucita tj danasnji datum
        todayDate = calendar.getDate();
@@ -187,6 +190,7 @@ public class SessionsFragment extends Fragment {
     }
     public void onClickSubmit(View v){
         if(v.getId()==R.id.submitButton){
+            adapter.clear();
 
             LayoutInflater inflater = LayoutInflater.from(requireContext());
             View dialogView = inflater.inflate(R.layout.submit_dialog, null);
@@ -238,6 +242,5 @@ public class SessionsFragment extends Fragment {
                     .show();
         }
     }
-
 
 }

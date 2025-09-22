@@ -92,6 +92,20 @@ public class DBHelper extends SQLiteOpenHelper {
         db.close();
 
     }
+    public void clearAllSessions() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        try {
+            db.delete(TABLE_SESSIONS, null, null); // Obriše sve redove iz tabele
+            Log.i("DB_HELPER", "All sessions cleared from database");
+        } catch (Exception e) {
+            Log.e("DB_HELPER", "Error clearing sessions: " + e.getMessage());
+        } finally {
+            if (db != null && db.isOpen()) {
+                db.close();
+            }
+        }
+    }
+
 
     public boolean sessionExists(String name) {
         SQLiteDatabase db = this.getReadableDatabase();
