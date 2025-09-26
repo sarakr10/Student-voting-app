@@ -39,7 +39,6 @@ import java.util.Locale;
 public class SessionsFragment extends Fragment {
 
     private static final String ARG_PARAM1 = "param1";
-
     private static final String ARG_PARAM2 = "param2";
     private String mParam1;
     private String mParam2;
@@ -53,8 +52,6 @@ public class SessionsFragment extends Fragment {
 
     long selectedDate;
     long todayDate;
-
-    int sessionCounter=0;
     String sessionName;
     String sessionStatus;
     private  HttpHelper httpHelper;
@@ -100,14 +97,14 @@ public class SessionsFragment extends Fragment {
        submit.setOnClickListener(this::onClickSubmit);
 
        db = new DBHelper(requireContext());
-        db.clearAllSessions();
-        httpHelper = new HttpHelper();
+       db.clearAllSessions();
+       httpHelper = new HttpHelper();
        adapter = new SessionAdapter(requireContext(), new ArrayList<>());
-        adapter.clear();
-        list.setAdapter(adapter);
+       adapter.clear();
+       list.setAdapter(adapter);
 
 
-        fetchSessionsFromServer();
+       fetchSessionsFromServer();
 
        //datum selektovan kada se fragment prvi put ucita tj danasnji datum
        todayDate = calendar.getDate();
@@ -145,7 +142,8 @@ public class SessionsFragment extends Fragment {
             try {
                 JSONArray jsonArray = httpHelper.getJSONArrayFromURL(SERVER_URL);
                 if (jsonArray != null) {
-                    ArrayList<SessionModel> sessionsFromServer = new ArrayList<>();
+                    db.clearAllSessions();
+
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject obj = jsonArray.getJSONObject(i);
                         Log.i("FETCH_SESSIONS", "Parsing session object: " + obj.toString());
@@ -154,6 +152,7 @@ public class SessionsFragment extends Fragment {
                         long dateMillis = 0;
                         try {
                             dateStr = obj.getString("date");
+                            dateMillis = Instant.parse(dateStr).toEpochMilli();
                         } catch (JSONException e) {
                             try {
                                 dateMillis = obj.getLong("date"); // timestamp u milisekundama
@@ -171,22 +170,26 @@ public class SessionsFragment extends Fragment {
                         SessionModel session = new SessionModel(name, dateMillis, description);
                         session.setId(id);
 
-                        if (!db.sessionExists(session.getId())) {
-                            db.insertSession(session);
-                        }
+                        db.insertSession(session);
+
                         Log.i("FETCH_SESSIONS", "Inserted session into DB: " + session.getName());
-                        sessionsFromServer.add(session); //za osvezavanje adaptera
                     }
                 }
                 requireActivity().runOnUiThread(() -> {
-                    adapter.clear(); // obriše sve iz adaptera
-                    adapter.setSessions(db.getSessions(0));
-                    adapter.notifyDataSetChanged();
+                    refreshAdapter();
                 });
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }).start();
+    }
+
+    private void refreshAdapter() {
+        ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
+        adapter.clear();
+        adapter.setSessions(sessionsFromDB);
+        adapter.notifyDataSetChanged();
+        Log.i("REFRESH_ADAPTER", "Adapter refreshed with " + sessionsFromDB.size() + " sessions");
     }
     public void onClickSubmit(View v){
         if(v.getId()==R.id.submitButton){
@@ -221,22 +224,22 @@ public class SessionsFragment extends Fragment {
                         new Thread(() -> {
                             try {
                                 boolean success = httpHelper.postJSONObjectFromURL(POST_URL, json);
-                                if (success) {
+                                Log.i("SUBMIT", "POST request result: " + success);
 
-                                    // Osveži listu na UI thread-u
-                                    requireActivity().runOnUiThread(() -> {
-                                        //fetchSessionsFromServer();
-                                        ArrayList<SessionModel> sessionsFromDB = db.getSessions(0);
-                                        adapter.clear();
-                                        adapter.setSessions(sessionsFromDB);
-                                        adapter.notifyDataSetChanged();
-                                    });
+                                if (success) {
+                                    // Sačekaj kratko da se server ažurira
+                                    Thread.sleep(500);
+
+                                    // Ponovo učitaj sve sesije sa servera
+                                    fetchSessionsFromServer();
+                                } else {
+                                    Log.e("SUBMIT", "Failed to post session to server");
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
+                                Log.e("SUBMIT", "Error posting session: " + e.getMessage());
                             }
                         }).start();
-
                     })
                     .setNegativeButton("Cancel", null)
                     .show();

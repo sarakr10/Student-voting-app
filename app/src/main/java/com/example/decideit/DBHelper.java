@@ -32,6 +32,7 @@ public class DBHelper extends SQLiteOpenHelper {
     /// /////////////////////////////////////////////////////////////////////////////////////////////
     public static final String TABLE_SESSIONS = "SESSIONS";
     public static final String COLUMN_DATE = "Date";
+    public static final String COLUMN_ID = "Id";
     public static final String COLUMN_SESSION_NAME = "Session_name";
     public static final String COLUMN_DESCRIPTION = "Description";
     public static final String COLUMN_EOVT = "End_of_voting_time";
@@ -56,7 +57,7 @@ public class DBHelper extends SQLiteOpenHelper {
         );
 
         db.execSQL("CREATE TABLE " + TABLE_SESSIONS +
-                "(" + COLUMN_DATE + " TEXT, " + COLUMN_SESSION_NAME + " TEXT, " +
+                "(" + COLUMN_DATE + " TEXT, "  + COLUMN_ID + " TEXT, "+ COLUMN_SESSION_NAME + " TEXT, " +
                 COLUMN_DESCRIPTION + " TEXT, " + COLUMN_EOVT + " TEXT" + ")"
         );
 
@@ -78,6 +79,7 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(COLUMN_SESSION_NAME, session.getName());
         values.put(COLUMN_DATE, session.getDateInString());
         values.put(COLUMN_DESCRIPTION, session.getStatus());
+        values.put(COLUMN_ID, session.getId());
 
         //racunanje end of voting time - 3 dana nakon datuma sesije
         long endOfVotingTime = session.getDate() + 3* 24 * 60 * 60 * 1000; //3 dana  u ms
@@ -234,8 +236,10 @@ public class DBHelper extends SQLiteOpenHelper {
                         String name = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SESSION_NAME));
                         String dateString = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE));
                         String status = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION));
+                        String id = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID));
                         long date = getDateFromString(dateString);
                         SessionModel session = new SessionModel(name, date, status);
+                        session.setId(id);
                         sessions.add(session);
                     } while (cursor.moveToNext());
 
