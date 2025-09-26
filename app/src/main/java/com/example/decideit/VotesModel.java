@@ -7,6 +7,7 @@ public class VotesModel {
     private String sessionName;
     private String sessionDate;
 
+    //
     public VotesModel(int noVotes, int yesVotes, int abstrainVotes, String sessionDate, String sessionName) {
         this.noVotes = noVotes;
         this.yesVotes = yesVotes;
