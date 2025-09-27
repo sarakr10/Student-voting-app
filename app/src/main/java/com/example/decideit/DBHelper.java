@@ -38,6 +38,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String COLUMN_EOVT = "End_of_voting_time";
 /// /////////////////////////////////////////////////////////////////////////////////////////////////
     public static final String TABLE_VOTES = "VOTES";
+    public static final String COLUMN_UPDATED = "Updated_at";
+    public static final String COLUMN_SESSION_ID = "Session_ID";
     public static final String COLUMN_YES = "Number_of_yes_votes";
     public static final String COLUMN_NO = "Number_of_no_votes";
     public static final String COLUMN_ABSTAIN = "Number_of_abstain_votes";
@@ -62,9 +64,9 @@ public class DBHelper extends SQLiteOpenHelper {
         );
 
         db.execSQL("CREATE TABLE " + TABLE_VOTES +
-                "(" + COLUMN_YES + " INTEGER, " + COLUMN_NO + " INTEGER, " +
-                COLUMN_ABSTAIN + " INTEGER, " + COLUMN_SESSION_NAME + " TEXT, " +
-                COLUMN_DATE + " TEXT" + ")"
+                "(" + COLUMN_SESSION_NAME + " TEXT, " + COLUMN_DATE + " TEXT, " +
+                COLUMN_YES + " INTEGER, " + COLUMN_NO + " INTEGER, " + COLUMN_ABSTAIN + " INTEGER, " +
+                COLUMN_SESSION_ID + " TEXT, " + COLUMN_UPDATED + " TEXT" + ")"
         );
     }
     @Override
@@ -116,14 +118,14 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         return exists;
     }
-    public long getEndOfVotingTime(String name, String date){
+    public long getEndOfVotingTime(String id, String date){
         SQLiteDatabase db = this.getReadableDatabase();
         long endOfVotingTime=0;
 
         Cursor cursor = db.query(TABLE_SESSIONS,
                                 new String[]{COLUMN_EOVT},
-                                COLUMN_SESSION_NAME+"=? AND "+COLUMN_DATE+"=?",
-                                new String[]{name, date}, null, null,null);
+                                COLUMN_ID+"=? AND "+COLUMN_DATE+"=?",
+                                new String[]{id, date}, null, null,null);
 
         if(cursor.moveToFirst()){
             endOfVotingTime = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_EOVT));
@@ -140,6 +142,8 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(COLUMN_ABSTAIN, vote.getAbstrainVotes());
         values.put(COLUMN_SESSION_NAME, vote.getSessionName());
         values.put(COLUMN_DATE, vote.getSessionDate());
+        values.put(COLUMN_SESSION_ID, vote.getSessionID());
+        values.put(COLUMN_UPDATED, vote.getUpdated());
         long result = db.insert(TABLE_VOTES, null, values);
         if(result == -1){
             Log.e("DB", "insert VOTES failed");
@@ -150,7 +154,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-    public void updateVotes(String sessionName, long sessionDate, String type){
+    public void updateVotes(String sessionID, String type){
         SQLiteDatabase db = this.getWritableDatabase();
         String column = null;
         if("YES".equals(type)){column = COLUMN_YES;}
@@ -159,8 +163,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
         String sql = "UPDATE " + TABLE_VOTES +
                 " SET " + column + " = " + column + " + 1" +
-                " WHERE " + COLUMN_SESSION_NAME + "=? AND " + COLUMN_DATE + "=?";
-        db.execSQL(sql, new Object[]{sessionName, getDateInString(sessionDate)});
+                " WHERE " + COLUMN_SESSION_ID + "=? ";
+        db.execSQL(sql, new Object[]{sessionID});
         db.close();
         Log.i("UPDATED VOTE", "VOTE HAS BEEN UPDATED       " +column);
     }
@@ -196,6 +200,63 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         db.close();
     }
+
+    public void updateVotesFromServer(String sessionId, int yes, int no, int abstain, String updated) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        Log.i("DB_UPDATE_SERVER", "Updating votes for sessionId: " + sessionId);
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_YES, yes);
+        values.put(COLUMN_NO, no);
+        values.put(COLUMN_ABSTAIN, abstain);
+        values.put(COLUMN_UPDATED, updated);
+
+        int rows = db.update(
+                TABLE_VOTES,
+                values,
+                COLUMN_SESSION_ID+" = ?",
+                new String[]{sessionId}
+        );
+
+        Log.i("DB_UPDATE_SERVER", "Rows updated: " + rows);
+
+        // Ako nema redova za update, kreiraj novi
+        if(rows == 0) {
+            Log.i("DB_UPDATE_SERVER", "No existing row found, creating new vote record");
+
+            // Pronađi session podatke
+            Cursor sessionCursor = db.query(TABLE_SESSIONS,
+                    new String[]{COLUMN_SESSION_NAME, COLUMN_DATE},
+                    COLUMN_ID+"=?",
+                    new String[]{sessionId}, null, null, null);
+
+            String sessionName = "Unknown Session";
+            String sessionDate = getDateInString(System.currentTimeMillis());
+
+            if(sessionCursor != null && sessionCursor.moveToFirst()) {
+                sessionName = sessionCursor.getString(sessionCursor.getColumnIndexOrThrow(COLUMN_SESSION_NAME));
+                sessionDate = sessionCursor.getString(sessionCursor.getColumnIndexOrThrow(COLUMN_DATE));
+                sessionCursor.close();
+            }
+
+            // Insert nov red
+            ContentValues insertValues = new ContentValues();
+            insertValues.put(COLUMN_YES, yes);
+            insertValues.put(COLUMN_NO, no);
+            insertValues.put(COLUMN_ABSTAIN, abstain);
+            insertValues.put(COLUMN_UPDATED, updated);
+            insertValues.put(COLUMN_SESSION_ID, sessionId);
+            insertValues.put(COLUMN_SESSION_NAME, sessionName);
+            insertValues.put(COLUMN_DATE, sessionDate);
+
+            long result = db.insert(TABLE_VOTES, null, insertValues);
+            Log.i("DB_UPDATE_SERVER", "Insert result: " + result);
+        }
+
+        db.close();
+    }
+
 
     public List<StudentModel> getAllStudents(Context context){
         List<StudentModel> students = new ArrayList<>();
@@ -250,22 +311,68 @@ public class DBHelper extends SQLiteOpenHelper {
         return sessions;
     }
 
-    public VotesModel getVotes(String sessionName, String sessionDate){
+    public VotesModel getVotes(String sessionID){
         SQLiteDatabase db = this.getReadableDatabase();
         VotesModel votes = null;
 
-        Cursor cursor = db.query(TABLE_VOTES, new String[]{COLUMN_YES, COLUMN_NO, COLUMN_ABSTAIN},
-                        COLUMN_SESSION_NAME+"=? AND "+COLUMN_DATE+"=?",
-                                new String[] {sessionName,sessionDate}, null, null, null);
-        if(cursor!=null && cursor.moveToFirst()){
-        int yes = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_YES));
-        int no = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NO));
-        int abstain = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ABSTAIN));
-        Log.i("BROJ GLASOVA", "yes  "+yes+"  no  "+no+"  abstain  "+abstain);
-        votes = new VotesModel(no, yes, abstain, sessionName, sessionDate);
-        cursor.close();
+        Log.i("DB_GET_VOTES", "Looking for sessionID: " + sessionID);
+
+        // ISPRAVKA: Uključite sve potrebne kolone u SELECT
+        Cursor cursor = db.query(TABLE_VOTES,
+                new String[]{COLUMN_YES, COLUMN_NO, COLUMN_ABSTAIN, COLUMN_SESSION_NAME, COLUMN_DATE, COLUMN_SESSION_ID},
+                COLUMN_SESSION_ID+"=?",
+                new String[] {sessionID}, null, null, null);
+
+        if(cursor != null && cursor.moveToFirst()){
+            int yes = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_YES));
+            int no = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NO));
+            int abstain = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ABSTAIN));
+            String sessionName = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SESSION_NAME));
+            String sessionDate = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE));
+
+            Log.i("DB_GET_VOTES", "Found votes - yes: "+yes+", no: "+no+", abstain: "+abstain);
+            votes = new VotesModel(no, yes, abstain, sessionID, sessionName, sessionDate);
+        } else {
+            Log.w("DB_GET_VOTES", "No votes found for sessionID: " + sessionID);
+            // Kreirajte prazan votes objekat ako ne postoji
+            votes = createEmptyVotesForSession(sessionID);
         }
+
+        if(cursor != null) {
+            cursor.close();
+        }
+        db.close();
         return votes;
+    }
+    private VotesModel createEmptyVotesForSession(String sessionID) {
+        Log.i("DB_CREATE_EMPTY", "Creating empty votes for sessionID: " + sessionID);
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // Pronađi session podatke
+        Cursor sessionCursor = db.query(TABLE_SESSIONS,
+                new String[]{COLUMN_SESSION_NAME, COLUMN_DATE},
+                COLUMN_ID+"=?",
+                new String[]{sessionID}, null, null, null);
+
+        String sessionName = "Unknown Session";
+        String sessionDate = getDateInString(System.currentTimeMillis());
+
+        if(sessionCursor != null && sessionCursor.moveToFirst()) {
+            sessionName = sessionCursor.getString(sessionCursor.getColumnIndexOrThrow(COLUMN_SESSION_NAME));
+            sessionDate = sessionCursor.getString(sessionCursor.getColumnIndexOrThrow(COLUMN_DATE));
+            sessionCursor.close();
+        }
+
+        db.close();
+
+        // Kreiraj prazan votes objekat
+        VotesModel emptyVotes = new VotesModel(0, 0, 0, sessionID, sessionName, sessionDate);
+
+        // Ubaci u bazu
+        insertVote(emptyVotes);
+
+        return emptyVotes;
     }
     public String getDateInString(long date){
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");

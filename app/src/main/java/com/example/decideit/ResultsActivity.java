@@ -23,15 +23,14 @@ public class ResultsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_results);
         Intent i = getIntent();
-        String sessionName = i.getStringExtra("sessionName");
-        String sessionDate = i.getStringExtra("sessionDate");
+        String sessionID = i.getStringExtra("sessionID");
 
         yesTV = findViewById(R.id.yesTextView);
         noTV = findViewById(R.id.noTextView);
         abstainTV = findViewById(R.id.abstainTextView);
 
         DBHelper db = new DBHelper(this);
-        votes = db.getVotes(sessionName, sessionDate);
+        votes = db.getVotes(sessionID);
 
         if(votes!=null){
             yesTV.setText(String.valueOf(votes.getYesVotes()));

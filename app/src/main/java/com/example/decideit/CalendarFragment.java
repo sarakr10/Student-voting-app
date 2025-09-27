@@ -97,7 +97,7 @@ public class CalendarFragment extends Fragment {
                         Toast.makeText(a, "No sessions for selected date", Toast.LENGTH_SHORT).show();
                     }else{
                         Intent i = new Intent(a, DecideActivity.class);
-                        i.putExtra("session", (Serializable) sessions.get(0));
+                        i.putExtra("session", (Serializable) sessions.get(0)); //prosledjuje prvu sesiju koja odgovara tom datumu
                         a.startActivity(i);
                     }
                 }

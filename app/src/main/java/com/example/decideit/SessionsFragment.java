@@ -43,7 +43,6 @@ public class SessionsFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     DBHelper db;
-
     ListView list;
     TextView emptyText;
     SessionAdapter adapter;
@@ -128,8 +127,7 @@ public class SessionsFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 SessionModel clickedSession = (SessionModel) parent.getItemAtPosition(position);
                 Intent i = new Intent(view.getContext(), ResultsActivity.class);
-                i.putExtra("sessionName", clickedSession.getName());
-                i.putExtra("sessionDate", db.getDateInString(clickedSession.getDate()));
+                i.putExtra("sessionID", clickedSession.getId());
                 startActivity(i);
             }
         });
