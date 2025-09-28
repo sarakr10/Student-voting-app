@@ -43,7 +43,6 @@ public class SessionsFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     DBHelper db;
-
     ListView list;
     TextView emptyText;
     SessionAdapter adapter;
@@ -57,7 +56,7 @@ public class SessionsFragment extends Fragment {
     private  HttpHelper httpHelper;
     private static final String SERVER_URL = "http://10.0.2.2:8080/api/sessions";
     private static final String POST_URL = "http://10.0.2.2:8080/api/session";
-
+    boolean a;
 
     public SessionsFragment() {
         // Required empty public constructor
@@ -85,30 +84,30 @@ public class SessionsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-       View v = inflater.inflate(R.layout.fragment_sessions, container, false);
+        View v = inflater.inflate(R.layout.fragment_sessions, container, false);
 
-       list = v.findViewById(R.id.sessionList);
-       emptyText = v.findViewById(R.id.emptyListText);
-       list.setEmptyView(emptyText);
+        list = v.findViewById(R.id.sessionList);
+        emptyText = v.findViewById(R.id.emptyListText);
+        list.setEmptyView(emptyText);
 
-       submit = v.findViewById(R.id.submitButton);
-       calendar = v.findViewById(R.id.sessionCalendar);
+        submit = v.findViewById(R.id.submitButton);
+        calendar = v.findViewById(R.id.sessionCalendar);
 
-       submit.setOnClickListener(this::onClickSubmit);
+        submit.setOnClickListener(this::onClickSubmit);
 
-       db = new DBHelper(requireContext());
-       db.clearAllSessions();
-       httpHelper = new HttpHelper();
-       adapter = new SessionAdapter(requireContext(), new ArrayList<>());
-       adapter.clear();
-       list.setAdapter(adapter);
+        db = new DBHelper(requireContext());
+        db.clearAllSessions();
+        httpHelper = new HttpHelper();
+        adapter = new SessionAdapter(requireContext(), new ArrayList<>());
+        adapter.clear();
+        list.setAdapter(adapter);
 
 
-       fetchSessionsFromServer();
+        fetchSessionsFromServer();
 
-       //datum selektovan kada se fragment prvi put ucita tj danasnji datum
-       todayDate = calendar.getDate();
-       selectedDate = calendar.getDate();
+        //datum selektovan kada se fragment prvi put ucita tj danasnji datum
+        todayDate = calendar.getDate();
+        selectedDate = calendar.getDate();
 
         calendar.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
@@ -128,8 +127,7 @@ public class SessionsFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 SessionModel clickedSession = (SessionModel) parent.getItemAtPosition(position);
                 Intent i = new Intent(view.getContext(), ResultsActivity.class);
-                i.putExtra("sessionName", clickedSession.getName());
-                i.putExtra("sessionDate", db.getDateInString(clickedSession.getDate()));
+                i.putExtra("sessionID", clickedSession.getId());
                 startActivity(i);
             }
         });

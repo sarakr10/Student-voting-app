@@ -25,8 +25,8 @@ import java.util.List;
 public class NotificationService extends Service {
     private static final String TAG = "NotificationService";
     private static final String CHANNEL_ID = "SESSION_NOTIFICATION_CHANNEL";
-    private static final long CHECK_INTERVAL = 60000; // 1 minut
-    private static final long WARNING_TIME = 2*24*60 * 60 * 1000; // 15 minuta
+    private static final long CHECK_INTERVAL = 60000; // proverava svaki minut
+    private static final long WARNING_TIME = 2*24*60 * 60 * 1000; // u naredna tri dana radi lakseg testiranja
 
     private Looper serviceLooper;
     private ServiceHandler serviceHandler;
@@ -155,7 +155,7 @@ public class NotificationService extends Service {
             ArrayList<SessionModel> allSessions = dbHelper.getSessions(0);
 
             for (SessionModel session : allSessions) {
-                long endOfVotingTime = dbHelper.getEndOfVotingTime(session.getName(), session.getDateInString());
+                long endOfVotingTime = dbHelper.getEndOfVotingTime(session.getId(), session.getDateInString());
 
                 if (endOfVotingTime > currentTime && endOfVotingTime <= warningTime) {
                     upcomingSessions.add(session);
@@ -178,22 +178,17 @@ public class NotificationService extends Service {
 
         int notificationId = (int) System.currentTimeMillis();
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                notificationId,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, notificationId, intent, PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.notification)
                 .setContentTitle("DecideIT")
                 .setContentText(session.getName() + " - Voting ends soon!")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent);
+                .setAutoCancel(true)                        //uklanja obavestenje kada se klikne na njega
+                .setContentIntent(pendingIntent);           //reakcija na klik na obavestenje je otvaranje aktivnosti
 
-        notificationManager.notify(notificationId, builder.build());
+        notificationManager.notify(notificationId, builder.build());    //da se obavestenje pojavi
 
         Log.d(TAG, "Notification sent for session: " + session.getName());
     }
