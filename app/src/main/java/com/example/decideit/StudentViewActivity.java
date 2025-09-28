@@ -1,5 +1,6 @@
 package com.example.decideit;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -25,11 +26,18 @@ public class StudentViewActivity extends AppCompatActivity implements View.OnCli
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_student_view);
+
+        if (getIntent() != null && "CALENDAR".equals(getIntent().getStringExtra("OPEN_FRAGMENT"))) {
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragmentLayout, cFragment).addToBackStack(null).commit();
+        }
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        Intent intentService = new Intent(this, NotificationService.class);
+        startService(intentService);
 
         String name = getIntent().getStringExtra("name");
         String surname = getIntent().getStringExtra("surname");
