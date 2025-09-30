@@ -56,16 +56,20 @@ public class NotificationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
+        //nit sa svojim looperom koja asinhrono obradjuje poruke
         HandlerThread thread = new HandlerThread("SessionNotificationThread", Process.THREAD_PRIORITY_FOREGROUND);
         thread.start();
 
+        //kontrolise red poruka koje se obradjuju u niti
         serviceLooper = thread.getLooper();
+
+        //klasa u kojoj definisemo handleMessage tj kako da se obradi svaka poruka
         serviceHandler = new ServiceHandler(serviceLooper);
 
         notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createNotificationChannel();
 
+        //kreiranje handlera za periodicne provere
         checkHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -75,10 +79,10 @@ public class NotificationService extends Service {
         Log.d(TAG, "Service started");
 
         Message msg = new Message();
-        msg.arg1 = startId;
+        msg.arg1 = startId;                     //identifikator klijenta koji je pozvao servis
         serviceHandler.sendMessage(msg);
 
-        return START_STICKY;
+        return START_STICKY;            //ako servis bude unisten sam ce se ponovo pokrenuti
     }
 
     @Override
@@ -109,6 +113,7 @@ public class NotificationService extends Service {
     }
 
     private void startSessionChecking() {
+        //ocisti prethodne zadatke da se ne bi dupliralo ivrsavanje
         if (checkHandler != null && checkRunnable != null) {
             checkHandler.removeCallbacks(checkRunnable);
         }
@@ -117,11 +122,11 @@ public class NotificationService extends Service {
             @Override
             public void run() {
                 checkUpcomingSessions();
-                checkHandler.postDelayed(this, CHECK_INTERVAL);
+                checkHandler.postDelayed(this, CHECK_INTERVAL);     //nakon izvrsavanja sam sebe ponovo zakazuje
             }
         };
 
-        checkHandler.post(checkRunnable);
+        checkHandler.post(checkRunnable);       //stavlja checkRunnable u red za izvrsenje na niti
         Log.d(TAG, "Session checking started - every minute");
     }
 

@@ -54,8 +54,8 @@ public class SessionsFragment extends Fragment {
     String sessionName;
     String sessionStatus;
     private  HttpHelper httpHelper;
-    private static final String SERVER_URL = "http://10.0.2.2:8080/api/sessions";
-    private static final String POST_URL = "http://10.0.2.2:8080/api/session";
+    private static final String SERVER_URL = "http://10.0.2.2:8080/api/sessions";   //GET
+    private static final String POST_URL = "http://10.0.2.2:8080/api/session";      //POST
     boolean a;
 
     public SessionsFragment() {
@@ -153,7 +153,7 @@ public class SessionsFragment extends Fragment {
                             dateMillis = Instant.parse(dateStr).toEpochMilli();
                         } catch (JSONException e) {
                             try {
-                                dateMillis = obj.getLong("date"); // timestamp u milisekundama
+                                dateMillis = obj.getLong("date");
                             } catch (JSONException ex) {
                                 ex.printStackTrace();
                             }
@@ -191,7 +191,6 @@ public class SessionsFragment extends Fragment {
     }
     public void onClickSubmit(View v){
         if(v.getId()==R.id.submitButton){
-            adapter.clear();
 
             LayoutInflater inflater = LayoutInflater.from(requireContext());
             View dialogView = inflater.inflate(R.layout.submit_dialog, null);
@@ -225,10 +224,8 @@ public class SessionsFragment extends Fragment {
                                 Log.i("SUBMIT", "POST request result: " + success);
 
                                 if (success) {
-                                    // Sačekaj kratko da se server ažurira
                                     Thread.sleep(500);
 
-                                    // Ponovo učitaj sve sesije sa servera
                                     fetchSessionsFromServer();
                                 } else {
                                     Log.e("SUBMIT", "Failed to post session to server");
